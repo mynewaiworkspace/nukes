@@ -1,359 +1,169 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stream of Thoughts</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>Mis Pensamientos</title>
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f4f4f5;
+            color: #18181b;
         }
-        
-        /* Custom scrollbar for a cleaner look */
-        ::-webkit-scrollbar {
-            width: 8px;
+        h1 {
+            text-align: center;
+            font-weight: 800;
+            margin-bottom: 30px;
         }
-        ::-webkit-scrollbar-track {
-            background: transparent;
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 15px;
+            box-sizing: border-box;
+            border-radius: 12px;
+            border: 1px solid #e4e4e7;
+            font-size: 16px;
+            resize: vertical;
+            margin-bottom: 10px;
+            font-family: inherit;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
+        textarea:focus {
+            outline: none;
+            border-color: #000;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
         }
-
-        .thought-enter {
-            animation: slideDown 0.3s ease-out forwards;
+        button:hover {
+            opacity: 0.8;
         }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        button:disabled {
+            background: #a1a1aa;
+            cursor: not-allowed;
+        }
+        .thought {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-top: 15px;
+            word-wrap: break-word;
+        }
+        .date {
+            font-size: 0.8em;
+            color: #71717a;
+            margin-bottom: 8px;
+        }
+        #status {
+            text-align: center;
+            color: #71717a;
+            margin-top: 20px;
         }
     </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+<body>
 
-    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-10">
-        <div class="max-w-2xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div>
-                <h1 class="text-xl font-semibold tracking-tight text-slate-900">Thoughts</h1>
-                <p class="text-xs text-slate-500 font-medium mt-0.5">Public Stream • Real-time</p>
-            </div>
-            <div class="flex items-center space-x-2">
-                <div id="connection-status" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" title="Connecting..."></div>
-                <span id="user-badge" class="text-xs font-mono text-slate-400 hidden bg-slate-100 px-2 py-1 rounded-md"></span>
-            </div>
-        </div>
-    </header>
+    <h1>Mis Pensamientos</h1>
+    
+    <div>
+        <textarea id="thoughtInput" placeholder="¿Qué estás pensando ahora mismo?"></textarea>
+        <button id="publishBtn">Publicar a la red</button>
+    </div>
 
-    <main class="flex-grow max-w-2xl w-full mx-auto px-4 py-8 flex flex-col gap-8">
-        
-        <!-- Compose Area -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 transition-shadow focus-within:shadow-md focus-within:border-blue-300">
-            <div class="flex gap-4">
-                <div class="hidden sm:block">
-                    <div id="my-avatar" class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 shadow-inner flex items-center justify-center text-white font-bold text-sm">
-                        ?
-                    </div>
-                </div>
-                <div class="flex-grow flex flex-col gap-3">
-                    <textarea 
-                        id="thought-input" 
-                        rows="3" 
-                        class="w-full bg-transparent border-none resize-none focus:ring-0 p-0 text-slate-700 placeholder-slate-400 text-lg" 
-                        placeholder="What's on your mind?"></textarea>
-                    
-                    <div class="flex justify-between items-center border-t border-slate-100 pt-3">
-                        <span id="char-count" class="text-xs text-slate-400 font-mono">0 / 500</span>
-                        <button 
-                            id="publish-btn" 
-                            disabled
-                            class="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white font-medium py-1.5 px-5 rounded-full transition-colors text-sm shadow-sm flex items-center gap-2">
-                            <span>Publish</span>
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Feed Area -->
-        <div class="flex flex-col gap-4">
-            <div id="loading-indicator" class="py-12 text-center flex flex-col items-center gap-3 text-slate-400">
-                <svg class="animate-spin h-6 w-6 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span class="text-sm">Loading thoughts...</span>
-            </div>
-            
-            <div id="feed-container" class="flex flex-col gap-4">
-                <!-- Thoughts will be injected here via JS -->
-            </div>
-            
-            <div id="empty-state" class="hidden py-16 text-center flex-col items-center gap-2">
-                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2 text-2xl">
-                    💭
-                </div>
-                <h3 class="text-lg font-medium text-slate-700">No thoughts yet</h3>
-                <p class="text-sm text-slate-500">Be the first to publish something to the stream.</p>
-            </div>
-        </div>
-    </main>
+    <div id="status">Loading thoughts...</div>
+    <div id="feed"></div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Importamos Firebase desde los servidores CDN web
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
-        // Global variables provided by the immersive environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'local-thought-app';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // Tus claves exactas de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBN55tpUx6gAJE_UOLPPy4XdmGGBUJGRqs",
+            authDomain: "nuke-nukes.firebaseapp.com",
+            projectId: "nuke-nukes",
+            storageBucket: "nuke-nukes.firebasestorage.app",
+            messagingSenderId: "392000262822",
+            appId: "1:392000262822:web:bb1ffce8f39075fb315a67"
+        };
 
-        // Initialize Firebase
+        // Inicializamos la App y la Base de Datos
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // UI Elements
-        const thoughtInput = document.getElementById('thought-input');
-        const publishBtn = document.getElementById('publish-btn');
-        const charCount = document.getElementById('char-count');
-        const feedContainer = document.getElementById('feed-container');
-        const loadingIndicator = document.getElementById('loading-indicator');
-        const emptyState = document.getElementById('empty-state');
-        const connectionStatus = document.getElementById('connection-status');
-        const userBadge = document.getElementById('user-badge');
-        const myAvatar = document.getElementById('my-avatar');
+        const publishBtn = document.getElementById('publishBtn');
+        const thoughtInput = document.getElementById('thoughtInput');
+        const feed = document.getElementById('feed');
+        const status = document.getElementById('status');
 
-        const MAX_CHARS = 500;
-        let currentUser = null;
-        let unsubscribe = null;
-        
-        // Generate a consistent color based on a string (User ID)
-        function stringToColor(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            const h = hash % 360;
-            return `hsl(${h}, 70%, 60%)`;
-        }
-
-        // Generate initials from a string
-        function getInitials(str) {
-            return str.substring(0, 2).toUpperCase();
-        }
-
-        // Format timestamp beautifully
-        function formatTime(timestamp) {
-            if (!timestamp) return 'Just now';
-            
-            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffSecs = Math.floor(diffMs / 1000);
-            const diffMins = Math.floor(diffSecs / 60);
-            const diffHours = Math.floor(diffMins / 60);
-            const diffDays = Math.floor(diffHours / 24);
-
-            if (diffSecs < 60) return 'Just now';
-            if (diffMins < 60) return `${diffMins}m ago`;
-            if (diffHours < 24) return `${diffHours}h ago`;
-            if (diffDays < 7) return `${diffDays}d ago`;
-            
-            return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
-        }
-
-        // Escape HTML to prevent XSS
-        function escapeHTML(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-
-        // Process line breaks to HTML
-        function formatText(str) {
-            return escapeHTML(str).replace(/\n/g, '<br>');
-        }
-
-        // Input handling
-        thoughtInput.addEventListener('input', () => {
-            const length = thoughtInput.value.trim().length;
-            charCount.textContent = `${length} / ${MAX_CHARS}`;
-            
-            if (length > 0 && length <= MAX_CHARS) {
-                publishBtn.removeAttribute('disabled');
-                charCount.classList.remove('text-red-500');
-                charCount.classList.add('text-slate-400');
-            } else {
-                publishBtn.setAttribute('disabled', 'true');
-                if (length > MAX_CHARS) {
-                    charCount.classList.add('text-red-500');
-                    charCount.classList.remove('text-slate-400');
-                }
-            }
-            
-            // Auto-resize textarea
-            thoughtInput.style.height = 'auto';
-            thoughtInput.style.height = (thoughtInput.scrollHeight) + 'px';
-        });
-
-        // Publish action
+        // Función para publicar
         publishBtn.addEventListener('click', async () => {
             const text = thoughtInput.value.trim();
-            if (!text || text.length > MAX_CHARS || !currentUser) return;
-
-            publishBtn.setAttribute('disabled', 'true');
-            publishBtn.innerHTML = `<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+            if (!text) return;
+            
+            publishBtn.disabled = true;
+            publishBtn.innerText = "Enviando...";
 
             try {
-                // Rule 1: Strict Paths - Public Data
-                const thoughtsRef = collection(db, 'artifacts', appId, 'public', 'data', 'thoughts');
-                await addDoc(thoughtsRef, {
+                await addDoc(collection(db, "thoughts"), {
                     text: text,
-                    authorId: currentUser.uid,
-                    timestamp: serverTimestamp() // Firestore server time
+                    timestamp: serverTimestamp()
                 });
-
-                // Reset UI
                 thoughtInput.value = '';
-                thoughtInput.style.height = 'auto';
-                charCount.textContent = `0 / ${MAX_CHARS}`;
             } catch (error) {
-                console.error("Error publishing thought:", error);
-                alert("Failed to publish. Please try again.");
+                console.error("Error publicando: ", error);
+                alert("Error al publicar. Revisa si configuraste Firestore en 'Start in test mode'.");
             } finally {
-                publishBtn.innerHTML = `<span>Publish</span><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>`;
+                publishBtn.disabled = false;
+                publishBtn.innerText = "Publicar a la red";
             }
         });
 
-        // Render a single thought card
-        function createThoughtElement(thought, id) {
-            const isMine = currentUser && thought.authorId === currentUser.uid;
-            const authorColor = stringToColor(thought.authorId || 'anonymous');
-            const authorInitials = getInitials(thought.authorId || 'AN');
+        // Escuchamos la base de datos en Tiempo Real
+        const q = query(collection(db, "thoughts"), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
+            status.style.display = 'none'; // Ocultamos el texto de carga
             
-            const div = document.createElement('div');
-            div.className = 'bg-white rounded-2xl shadow-sm border border-slate-100 p-5 thought-enter hover:shadow-md transition-shadow';
-            div.dataset.id = id;
-            
-            div.innerHTML = `
-                <div class="flex gap-4">
-                    <div class="flex-shrink-0">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm" style="background-color: ${authorColor}">
-                            ${authorInitials}
-                        </div>
-                    </div>
-                    <div class="flex-grow min-w-0">
-                        <div class="flex justify-between items-baseline mb-1">
-                            <span class="font-medium text-slate-800 text-sm truncate mr-2 flex items-center gap-1.5">
-                                User_${thought.authorId ? thought.authorId.substring(0, 5) : 'Anon'}
-                                ${isMine ? '<span class="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-wider">You</span>' : ''}
-                            </span>
-                            <span class="text-xs text-slate-400 whitespace-nowrap">${formatTime(thought.timestamp)}</span>
-                        </div>
-                        <div class="text-slate-700 whitespace-pre-wrap break-words text-[15px] leading-relaxed">${formatText(thought.text)}</div>
-                    </div>
-                </div>
-            `;
-            return div;
-        }
-
-        // Setup Real-time Listener
-        function setupRealtimeFeed() {
-            // Rule 1: Strict Paths
-            const thoughtsRef = collection(db, 'artifacts', appId, 'public', 'data', 'thoughts');
-            
-            // Rule 2: No Complex Queries (fetch all, sort in memory)
-            const q = query(thoughtsRef);
-
-            unsubscribe = onSnapshot(q, (snapshot) => {
-                loadingIndicator.classList.add('hidden');
-                
-                const thoughts = [];
-                snapshot.forEach((doc) => {
-                    thoughts.push({ id: doc.id, ...doc.data() });
-                });
-
-                // Client-side sorting (newest first)
-                thoughts.sort((a, b) => {
-                    const timeA = a.timestamp ? (a.timestamp.toMillis ? a.timestamp.toMillis() : new Date(a.timestamp).getTime()) : 0;
-                    const timeB = b.timestamp ? (b.timestamp.toMillis ? b.timestamp.toMillis() : new Date(b.timestamp).getTime()) : 0;
-                    return timeB - timeA;
-                });
-
-                // Render
-                feedContainer.innerHTML = '';
-                if (thoughts.length === 0) {
-                    emptyState.classList.remove('hidden');
-                    emptyState.classList.add('flex');
-                } else {
-                    emptyState.classList.add('hidden');
-                    emptyState.classList.remove('flex');
-                    
-                    thoughts.forEach(thought => {
-                        feedContainer.appendChild(createThoughtElement(thought, thought.id));
-                    });
-                }
-            }, (error) => {
-                console.error("Error listening to thoughts:", error);
-                loadingIndicator.innerHTML = `<span class="text-red-500">Failed to load feed. Check console.</span>`;
-            });
-        }
-
-        // Initialize App Auth
-        async function initAuth() {
-            try {
-                // Rule 3: Auth Before Queries
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                
-                currentUser = auth.currentUser;
-                
-                // Update UI based on auth
-                connectionStatus.classList.remove('bg-amber-400', 'animate-pulse');
-                connectionStatus.classList.add('bg-emerald-500');
-                connectionStatus.title = "Connected live";
-                
-                userBadge.textContent = currentUser.uid.substring(0, 8);
-                userBadge.classList.remove('hidden');
-
-                // Set avatar in compose box
-                myAvatar.style.background = stringToColor(currentUser.uid);
-                myAvatar.textContent = getInitials(currentUser.uid);
-                
-                // Now start listening to data
-                setupRealtimeFeed();
-
-            } catch (error) {
-                console.error("Authentication failed:", error);
-                connectionStatus.classList.remove('bg-amber-400', 'animate-pulse');
-                connectionStatus.classList.add('bg-red-500');
-                connectionStatus.title = "Connection failed";
-                loadingIndicator.innerHTML = `<span class="text-red-500 text-sm">Failed to connect to the network.</span>`;
+            if (snapshot.empty) {
+                feed.innerHTML = '<div id="status">No thoughts yet. Escribe el primero arriba.</div>';
+                return;
             }
-        }
+            
+            feed.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const div = document.createElement('div');
+                div.className = 'thought';
+                
+                // Formateamos la fecha si existe, si no, ponemos la actual
+                const dateObj = data.timestamp ? data.timestamp.toDate() : new Date();
+                const dateStr = dateObj.toLocaleString('es-ES', { 
+                    day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' 
+                });
 
-        // Start app
-        initAuth();
-
+                div.innerHTML = `
+                    <div class="date">${dateStr}</div>
+                    <div>${data.text.replace(/\n/g, '<br>')}</div>
+                `;
+                feed.appendChild(div);
+            });
+        }, (error) => {
+            status.innerText = "Error cargando. Revisa los permisos de Firebase.";
+            console.error(error);
+        });
     </script>
 </body>
 </html>
